@@ -1,3 +1,8 @@
+"""
+Generate BTC addresses which has predefined prefix.
+For example my BTC address: 1KeVN9yzZVqGRhB7MYWb2AdUQdjrDBjNQM
+"""
+
 import secrets
 
 from btc import BTC
