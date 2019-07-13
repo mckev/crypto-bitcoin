@@ -54,7 +54,7 @@ class B58:
         return '1' * leading_zeros + B58.base58encode(result)
 
 
-class BTC:
+class BtcAddress:
 
     @staticmethod
     def convert_btc_private_key_into_wif(btc_private_key: bytes) -> str:
