@@ -23,6 +23,8 @@ class BtcAddress:
 
     @staticmethod
     def derive_public_address(private_key_bytes: bytes):
+        # Ref: https://www.youtube.com/watch?v=z2Ju7pcE6wo [Fajrul Fx - Satu Rumus Matematika yang Menjaga Semua Bitcoin di Dunia]
+
         # 1. 256-bit private key
         assert len(private_key_bytes) == 32
 
