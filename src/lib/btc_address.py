@@ -15,7 +15,7 @@ class BtcAddress:
         return hashlib.new('ripemd160', b).digest()
 
     @staticmethod
-    def convert_private_key_into_wif(private_key_bytes: bytes):
+    def convert_private_key_into_wif(private_key_bytes: bytes) -> str:
         assert len(private_key_bytes) == 32
         private_key_int = int.from_bytes(private_key_bytes, 'big')
         print(f'Private Key (decimal): {private_key_int}')
@@ -23,13 +23,24 @@ class BtcAddress:
         print(f'Private Key (hex): {private_key_hex}')
         # https://en.bitcoin.it/wiki/Wallet_import_format (0x80 for mainnet)
         checksum = BtcAddress.sha256(BtcAddress.sha256(b'\x80' + private_key_bytes + b'\x01'))[:4]
-        wif_compressed = base58.b58encode(b'\x80' + private_key_bytes + b'\x01' + checksum).decode()
-        print(f'Private Key (WIF compressed): {wif_compressed}')
+        # 0x01 suffix for WIF compressed
+        wif_str = base58.b58encode(b'\x80' + private_key_bytes + b'\x01' + checksum).decode()
+        print(f'Private Key (WIF compressed): {wif_str}')
         print()
-        return wif_compressed
+        return wif_str
 
     @staticmethod
-    def derive_public_address(private_key_bytes: bytes):
+    def convert_wif_into_private_key(wif_str: str) -> bytes:
+        wif_bytes = base58.b58decode(wif_str)
+        assert wif_bytes[0] == 0x80
+        checksum = BtcAddress.sha256(BtcAddress.sha256(wif_bytes[:-4]))[:4]
+        assert checksum == wif_bytes[-4:]
+        private_key_bytes = wif_bytes[1:32+1]
+        assert len(private_key_bytes) == 32
+        return private_key_bytes
+
+    @staticmethod
+    def derive_public_addresses(private_key_bytes: bytes):
         # You can use https://www.blockchain.com/explorer/addresses/btc/<address> to verify
 
         # 1. 256-bit private key
