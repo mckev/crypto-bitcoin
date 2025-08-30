@@ -19,29 +19,23 @@ class TestBtcAddress:
     def test_derive_public_address_01(self):
         # Ref: https://www.palkeo.com/en/blog/stealing-bitcoin.html
         private_key_bytes = bytes.fromhex('0000000000000000000000000000000000000000000000000000000000000001')
-        btc_address_legacy, _ = BtcAddress.derive_public_address(private_key_bytes)
-        assert btc_address_legacy == '1EHNa6Q4Jz2uvNExL497mE43ikXhwF6kZm'
+        btc_address_1, _, _ = BtcAddress.derive_public_address(private_key_bytes)
+        assert btc_address_1 == '1EHNa6Q4Jz2uvNExL497mE43ikXhwF6kZm'
 
         private_key_bytes = hashlib.sha256(b'cat').digest()
-        btc_address_legacy, _ = BtcAddress.derive_public_address(private_key_bytes)
-        assert btc_address_legacy == '162TRPRZvdgLVNksMoMyGJsYBfYtB4Q8tM'
+        btc_address_1, _, _ = BtcAddress.derive_public_address(private_key_bytes)
+        assert btc_address_1 == '162TRPRZvdgLVNksMoMyGJsYBfYtB4Q8tM'
 
         private_key_bytes = hashlib.sha256(b'hello').digest()
-        btc_address_legacy, _ = BtcAddress.derive_public_address(private_key_bytes)
-        assert btc_address_legacy == '1HoSFymoqteYrmmr7s3jDDqmggoxacbk37'
+        btc_address_1, _, _ = BtcAddress.derive_public_address(private_key_bytes)
+        assert btc_address_1 == '1HoSFymoqteYrmmr7s3jDDqmggoxacbk37'
 
     def test_derive_public_address_02(self):
         # Ref: https://github.com/fortesp/bitcoinaddress/blob/master/README.md
         private_key_bytes = bytes.fromhex('03902e4f09664bc177fe4e090dcd9906b432b50f15fb6151984475c1c75c35b6')
         wif_compressed = BtcAddress.convert_private_key_into_wif(private_key_bytes)
         assert wif_compressed == 'KwLdv6T2jmhQbswnYrcL9KZHerTpVyjozp1JNjfP5QuD3GchCwCc'
-        btc_address_legacy, btc_address_native_segwit = BtcAddress.derive_public_address(private_key_bytes)
-        assert btc_address_legacy == '1Bu6YxH64nfvhdDsYNEP8PftoBMqgusdPS'
-        assert btc_address_native_segwit == 'bc1q2jxe5azr6zmhk3258av7ul6cqtu4eu4mps8f4p'
-
-        private_key_bytes = bytes.fromhex('03902e4f09664bc177fe4e090dcd9906b432b50f15fb6151984475c1c75c35b6')
-        wif_compressed = BtcAddress.convert_private_key_into_wif(private_key_bytes)
-        assert wif_compressed == 'KwLdv6T2jmhQbswnYrcL9KZHerTpVyjozp1JNjfP5QuD3GchCwCc'
-        btc_address_legacy, btc_address_native_segwit = BtcAddress.derive_public_address(private_key_bytes)
-        assert btc_address_legacy == '1Bu6YxH64nfvhdDsYNEP8PftoBMqgusdPS'
-        assert btc_address_native_segwit == 'bc1q2jxe5azr6zmhk3258av7ul6cqtu4eu4mps8f4p'
+        btc_address_1, btc_address_3, btc_address_bc1q = BtcAddress.derive_public_address(private_key_bytes)
+        assert btc_address_1 == '1Bu6YxH64nfvhdDsYNEP8PftoBMqgusdPS'
+        assert btc_address_3 == '38dRrGx5YbrnRWuWcJv5i2XHjYUnHE2wvv'
+        assert btc_address_bc1q == 'bc1q2jxe5azr6zmhk3258av7ul6cqtu4eu4mps8f4p'
