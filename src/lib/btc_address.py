@@ -76,10 +76,10 @@ class BtcAddress:
         prefix = b'\x02' if int.from_bytes(y, 'big') % 2 == 0 else b'\x03'
         compressed_pubkey = prefix + x
         print(f'Compressed Public Key (hex): {compressed_pubkey.hex()}')
-        hashed_pubkey = BtcAddress.ripemd160(BtcAddress.sha256(compressed_pubkey))
+        hashed_compressed_pubkey = BtcAddress.ripemd160(BtcAddress.sha256(compressed_pubkey))
 
         # 5. Create P2SH / Pay-to-Script-Hash Bitcoin address
-        redeem_script = b'\x00\x14' + hashed_pubkey
+        redeem_script = b'\x00\x14' + hashed_compressed_pubkey
         redeem_script_hash = BtcAddress.ripemd160(BtcAddress.sha256(redeem_script))
         versioned_payload = b'\x05' + redeem_script_hash
         checksum = BtcAddress.sha256(BtcAddress.sha256(versioned_payload))[:4]
@@ -90,7 +90,7 @@ class BtcAddress:
 
         # 6. Create P2WPKH / Pay-to-Witness-Public-Key-Hash / Native Segwit Bitcoin address
         witness_version = 0
-        witness_program = bech32.convertbits(hashed_pubkey, 8, 5, True)
+        witness_program = bech32.convertbits(hashed_compressed_pubkey, 8, 5, True)
         btc_address_bc1q = bech32.bech32_encode('bc', [witness_version] + witness_program)
         assert len(btc_address_bc1q) == 42
         assert btc_address_bc1q.startswith('bc1q')
