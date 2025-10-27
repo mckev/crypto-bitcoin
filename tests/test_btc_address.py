@@ -47,3 +47,22 @@ class TestBtcAddress:
         assert btc_address_1 == '1Bu6YxH64nfvhdDsYNEP8PftoBMqgusdPS'
         assert btc_address_3 == '38dRrGx5YbrnRWuWcJv5i2XHjYUnHE2wvv'
         assert btc_address_bc1q == 'bc1q2jxe5azr6zmhk3258av7ul6cqtu4eu4mps8f4p'
+
+    def test_generate_last_private_key_bytes(self):
+        prefix = ''
+        for _ in range(64):
+            for ch in ['F', 'E', 'D', 'C', 'B', 'A', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0']:
+                suffix = ch + '0' * (64 - (len(prefix) + 1))
+                private_key_str = prefix + suffix
+                private_key_bytes = bytes.fromhex(private_key_str)
+                assert len(private_key_str) == 64
+                try:
+                    BtcAddress.derive_public_addresses(private_key_bytes)
+                    break
+                except Exception:
+                    pass
+            else:
+                assert False
+            prefix += ch
+        private_key_str = prefix
+        assert private_key_str == 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140'
