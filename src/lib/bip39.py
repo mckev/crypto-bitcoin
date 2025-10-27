@@ -1,3 +1,6 @@
+# BIP 0039 : Mnemonic
+# https://en.bitcoin.it/wiki/BIP_0039
+
 import hashlib
 import os
 import secrets
@@ -121,6 +124,6 @@ class Bip39:
         salt_bytes = ('mnemonic' + passphrase_normalized).encode('utf-8')
 
         # PBKDF2-HMAC-SHA512, 2048 iterations, 64 bytes
-        seed = hashlib.pbkdf2_hmac('sha512', mnemonic_bytes, salt_bytes, 2048, dklen=64)
-        assert (len(seed) == 64)
-        return seed
+        seed_bytes = hashlib.pbkdf2_hmac('sha512', mnemonic_bytes, salt_bytes, 2048, dklen=64)
+        assert (len(seed_bytes) == 64)
+        return seed_bytes
