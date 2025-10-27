@@ -64,6 +64,7 @@ class BtcAddress:
         #       - Step 3: Create checksum (double SHA-256)
         checksum = BtcAddress.sha256(BtcAddress.sha256(versioned_payload))[:4]
         #       - Step 4: Combine and encode with base58
+        #    Ref: https://learnmeabitcoin.com/technical/script/p2pkh/
         btc_address_1 = base58.b58encode(versioned_payload + checksum).decode()
         assert btc_address_1.startswith('1')
         print(f'Bitcoin Address 1 (legacy): {btc_address_1}')

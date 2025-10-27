@@ -33,8 +33,8 @@ class Bip32:
     def fingerprint_from_private(private_int: int):
         public = ecdsa.SigningKey.from_secret_exponent(private_int, curve=ecdsa.SECP256k1).verifying_key
         public_bytes = public.to_string('compressed')
-        private_fingerprint = Bip32.ripemd160(Bip32.sha256(public_bytes))[:4]
-        return private_fingerprint
+        fingerprint = Bip32.ripemd160(Bip32.sha256(public_bytes))[:4]
+        return fingerprint
 
     @staticmethod
     def master_key_from_seed(seed_bytes: bytes):
@@ -89,23 +89,23 @@ class Bip32:
 
     @staticmethod
     def derive_from_path(seed_bytes: bytes, path: str):
-        private_fingerprint = b'\x00\x00\x00\x00'
+        parent_fingerprint = b'\x00\x00\x00\x00'
         private_int, chain_code = Bip32.master_key_from_seed(seed_bytes)
         index = 0
         depth = 0
         for index in Bip32.parse_path(path):
-            private_fingerprint = Bip32.fingerprint_from_private(private_int)
+            parent_fingerprint = Bip32.fingerprint_from_private(private_int)
             private_int, chain_code = Bip32.derive_child_key(private_int, chain_code, index)
             depth += 1
-        return depth, private_fingerprint, index, chain_code, private_int
+        return depth, parent_fingerprint, index, chain_code, private_int
 
     @staticmethod
-    def serialize_xprv(last_depth, private_fingerprint, last_index, chain_code, private_int):
+    def serialize_xprv(last_depth, parent_fingerprint, last_index, chain_code, private_int):
         version = bytes.fromhex('0488ADE4')                 # xprv mainnet
         data = (
             version +
             Bip32.int_to_bytes(last_depth, 1) +
-            private_fingerprint +
+            parent_fingerprint +
             struct.pack('>I', last_index) +
             chain_code +
             b'\x00' + Bip32.int_to_bytes(private_int, 32)
@@ -114,14 +114,33 @@ class Bip32:
         return base58.b58encode(data + checksum).decode()
 
     @staticmethod
-    def serialize_xpub(last_depth, private_fingerprint, last_index, chain_code, private_int):
+    def deserialize_xprv(xprv: str) -> bytes:
+        data = base58.b58decode_check(xprv)  # returns full payload without checksum
+        # structure: 4 version | 1 depth | 4 parent_fp | 4 child_index | 32 chain_code | 33 key_data
+        if len(data) != 78:
+            raise ValueError("Unexpected extended-key payload length: %d" % len(data))
+        version = data[:4]
+        assert version == bytes.fromhex('0488ADE4')
+        last_depth = data[4]
+        parent_fingerprint = data[5:9]
+        last_index = struct.unpack(">I", data[9:13])[0]
+        chain_code = data[13:45]
+        private_data = data[45:78]                          # 33 bytes
+        if private_data[0] != 0x00:
+            raise ValueError("Not an xprv (expected first byte of key_data to be 0x00)")
+        private_bytes = private_data[1:]
+        assert len(private_bytes) == 32
+        return private_bytes
+
+    @staticmethod
+    def serialize_xpub(last_depth, parent_fingerprint, last_index, chain_code, private_int):
         version = bytes.fromhex('0488B21E')                 # xpub mainnet
         public = ecdsa.SigningKey.from_secret_exponent(private_int, curve=ecdsa.SECP256k1).verifying_key
         public_bytes = public.to_string('compressed')
         data = (
             version +
             Bip32.int_to_bytes(last_depth, 1) +
-            private_fingerprint +
+            parent_fingerprint +
             struct.pack('>I', last_index) +
             chain_code +
             public_bytes
