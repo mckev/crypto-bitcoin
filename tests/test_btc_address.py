@@ -1,5 +1,7 @@
 import hashlib
 
+import ecdsa
+
 from lib.btc_address import BtcAddress
 
 
@@ -51,7 +53,7 @@ class TestBtcAddress:
     def test_generate_last_private_key_bytes(self):
         prefix = ''
         for _ in range(64):
-            for ch in ['F', 'E', 'D', 'C', 'B', 'A', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0']:
+            for ch in ['f', 'e', 'd', 'c', 'b', 'a', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0']:
                 suffix = ch + '0' * (64 - (len(prefix) + 1))
                 private_key_str = prefix + suffix
                 private_key_bytes = bytes.fromhex(private_key_str)
@@ -65,4 +67,12 @@ class TestBtcAddress:
                 assert False
             prefix += ch
         private_key_str = prefix
-        assert private_key_str == 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140'
+        assert private_key_str == 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140'
+
+        N = ecdsa.SECP256k1.order
+        assert f'{N:x}' == 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141'
+
+        btc_address_1, btc_address_3, btc_address_bc1q = BtcAddress.derive_public_addresses(private_key_bytes)
+        assert btc_address_1 == '1JPbzbsAx1HyaDQoLMapWGoqf9pD5uha5m'
+        assert btc_address_3 == '38Kw57SDszoUEikRwJNBpypPSdpbAhToeD'
+        assert btc_address_bc1q == 'bc1q4h0ycu78h88wzldxc7e79vhw5xsde0n8jk4wl5'
